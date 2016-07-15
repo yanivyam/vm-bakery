@@ -6,6 +6,8 @@ Baking (building) scripts for VM images.
 
 Can output as a VM image or Vagrant box.
 
+Based on scripts from https://github.com/boxcutter/centos
+
 
 Prerequisits
 ************
