@@ -1,0 +1,94 @@
+{
+  "_comment": "Build with `General packer build for RedHat 7`",
+
+  "variables": {
+    "iso_url": "{{ env `SOURCE_ISO_URL` }}",
+    "iso_checksum_url": "{{ env `SOURCE_ISO_MD5_URL` }}",
+    "iso_checksum_type": "md5",
+    "iso_name": "{{ env `SOURCE_ISO_NAME` }}",
+    "iso_path": "{{ env `SOURCE_ISO_PATH` }}",
+    "headless": "true",
+    "cpus": "1",
+    "memory": "512",
+    "disk_size": "15360",
+    "desktop": "false",
+    "vagrant": "{{ env `VAGRANT` }}",
+    "install_vagrant_key": "{{ env `VAGRANT` }}",
+    "vagrantfile_template": "",
+    "docker": "false",
+    "ftp_proxy": "",
+    "http_proxy": "",
+    "https_proxy": "",
+    "no_proxy": "",
+    "rsync_proxy": "",
+    "kickstart": "ks7.cfg",
+    "shutdown_command": "echo 'vagrant'|sudo -S shutdown -P now",
+    "ssh_password": "vagrant",
+    "ssh_username": "vagrant",
+    "update": "false"
+  },
+
+  "builders": [
+    {
+      "type": "qemu",
+      "accelerator": "kvm",
+      "net_device": "virtio-net", 
+      "disk_interface": "virtio", 
+      "vm_name": "out.img",
+      "output_directory": "work/build",
+      "boot_command": [
+        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort}}/{{ user `kickstart` }}<enter>"
+      ],
+      "disk_size": "{{ user `disk_size` }}",
+      "guest_additions_mode": "upload",
+      "guest_additions_path": "",
+      "headless": "{{ user `headless` }}",
+      "http_directory": "http",
+      "iso_checksum_url": "{{ user `iso_checksum_url` }}",
+      "iso_checksum_type": "{{ user `iso_checksum_type` }}",
+      "iso_urls": [
+        "{{ user `iso_path` }}/{{ user `iso_name` }}",
+        "{{ user `iso_url` }}"
+      ],
+      "shutdown_command": "{{ user `shutdown_command` }}",
+      "ssh_password": "{{ user `ssh_password` }}",
+      "ssh_username": "{{ user `ssh_username` }}",
+      "ssh_wait_timeout": "10000s"
+    }
+  ],
+  "provisioners": [
+    {
+      "environment_vars": [
+        "DESKTOP={{user `desktop`}}",
+        "DOCKER={{user `docker`}}",
+        "UPDATE={{user `update`}}",
+        "VAGRANT={{ user `vagrant` }}",
+        "INSTALL_VAGRANT_KEY={{user `install_vagrant_key`}}",
+        "SSH_USERNAME={{user `ssh_username`}}",
+        "SSH_PASSWORD={{user `ssh_password`}}",
+        "http_proxy={{user `http_proxy`}}",
+        "https_proxy={{user `https_proxy`}}",
+        "ftp_proxy={{user `ftp_proxy`}}",
+        "rsync_proxy={{user `rsync_proxy`}}",
+        "no_proxy={{user `no_proxy`}}"
+      ],
+      "execute_command": "echo 'vagrant' | {{.Vars}} sudo -E -S bash '{{.Path}}'",
+      "scripts": [
+        "script/fix-slow-dns.sh",
+        "script/sshd.sh",
+        "script/update.sh",
+        "script/vagrant.sh",
+        "script/desktop.sh",
+        "script/vmware.sh",
+        "script/virtualbox.sh",
+        "script/docker.sh",
+        "script/motd.sh",
+        "script/cleanup.sh"
+      ],
+      "type": "shell"
+    }
+  ],
+
+}
+}
+
